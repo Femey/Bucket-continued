@@ -1,0 +1,17 @@
+[
+  {
+    "modid": "bucket",
+    "name": "Bucket",
+    "description": "very funny phobos skid",
+    "version": "1.0.8",
+    "mcversion": "1.12.2",
+    "logoFile": "bucket.png",
+    "updateUrl": "",
+    "authorList": [
+      "JustaRaptor"
+      "WobblyBananaHat",
+    ],
+    "screenshots": [],
+    "dependencies": []
+  }
+]
