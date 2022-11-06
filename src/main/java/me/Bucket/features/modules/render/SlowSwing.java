@@ -1,4 +1,4 @@
-package me.Bucket.features.modules.test;
+package me.Bucket.features.modules.render;
 
 import me.Bucket.features.modules.*;
 import me.Bucket.features.setting.*;
