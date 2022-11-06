@@ -26,7 +26,7 @@ public class DiscordPresence {
         DiscordPresence.presence.details = Minecraft.getMinecraft().currentScreen instanceof GuiMainMenu ? "In the main menu." : "Playing " + (Minecraft.getMinecraft().currentServerData != null ? (RPC.INSTANCE.showIP.getValue().booleanValue() ? "on " + Minecraft.getMinecraft().currentServerData.serverIP + "." : " multiplayer.") : " singleplayer.");
         DiscordPresence.presence.state = RPC.INSTANCE.state.getValue();
         DiscordPresence.presence.largeImageKey = "bucket";
-        DiscordPresence.presence.largeImageText = "Bucket 1.0.9";
+        DiscordPresence.presence.largeImageText = "Bucket 1.1.2";
         rpc.Discord_UpdatePresence(presence);
         thread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
