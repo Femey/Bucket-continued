@@ -8,6 +8,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
+import javax.vecmath.Vector3f;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -108,6 +109,11 @@ public class MathUtil
 
     public static Vec3d direction(float yaw) {
         return new Vec3d(Math.cos(MathUtil.degToRad(yaw + 90.0f)), 0.0, Math.sin(MathUtil.degToRad(yaw + 90.0f)));
+    }
+
+    public static Vector3f mix(Vector3f first, Vector3f second, float factor)
+    {
+        return new Vector3f(first.x * (1.0f - factor) + second.x * factor, first.y * (1.0f - factor) + second.y * factor, first.z * (1.0f - factor) + first.z * factor);
     }
 
     public static float round(float value, int places) {

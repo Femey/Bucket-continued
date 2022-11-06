@@ -35,7 +35,6 @@ public class ModuleManager
         this.modules.add(new NoatAura());
         this.modules.add(new AutoTrap());
         this.modules.add(new AutoCrystal());
-        this.modules.add(new PumpkinAura());
         this.modules.add(new PumpkinOffhand());
         this.modules.add(new Criticals());
         this.modules.add(new BowSpam());
@@ -125,7 +124,9 @@ public class ModuleManager
         this.modules.add(new TpsSync());
         this.modules.add(new MCP());
         this.modules.add(new TrueDurability());
+        this.modules.add(new Ambience());
         this.modules.add(new Yaw());
+        this.modules.add(new SelfFill());
         this.modules.add(new NoDDoS());
         this.modules.add(new StorageESP());
         this.modules.add(new NoRender());
@@ -141,6 +142,7 @@ public class ModuleManager
         this.modules.add(new SlowSwing());
         this.modules.add(new AntiFacePlace());
         this.modules.add(new Trajectories());
+        this.modules.add(new ViewModel());
         this.modules.add(new Tracer());
         this.modules.add(new LogoutSpots());
         this.modules.add(new XRay());

@@ -9,11 +9,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.*;
-import net.minecraft.entity.*;
-import org.spongepowered.asm.mixin.injection.callback.*;
 import me.Bucket.features.modules.render.*;
-import org.spongepowered.asm.mixin.injection.*;
 
 @Mixin(value={EntityLivingBase.class})
 public abstract class MixinEntityLivingBase
