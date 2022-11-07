@@ -5,3 +5,4 @@
 # Shit i needa work on
 * Make Femboy esp (how the fuck)
 * The bucket on the start screen is broken :(
+* The performance is terrible if your computer isnt acceptable
