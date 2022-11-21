@@ -31,9 +31,11 @@ public class ModuleManager
 
     public void init() {
         this.modules.add(new Offhand());
+        this.modules.add(new Anchor());
         this.modules.add(new Surround());
         this.modules.add(new NoatAura());
         this.modules.add(new AutoTrap());
+        this.modules.add(new FemboyESP());
         this.modules.add(new AutoCrystal());
         this.modules.add(new PumpkinOffhand());
         this.modules.add(new Criticals());
