@@ -1,5 +1,6 @@
 package me.Bucket.util;
 
+import me.Bucket.manager.FileManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;
@@ -12,6 +13,8 @@ public class Wrapper {
     public static final Minecraft mc = Minecraft.getMinecraft();
 
     public static volatile Wrapper INSTANCE = new Wrapper();
+
+    public static FileManager fileManager;
 
     @Nullable
     public static EntityPlayerSP getPlayer(){
@@ -29,5 +32,12 @@ public class Wrapper {
 
     public void sendPacket(Packet packet) {
         this.getPlayer().connection.sendPacket(packet);
+    }
+
+    public static FileManager getFileManager() {
+        if (Wrapper.fileManager == null) {
+            Wrapper.fileManager = new FileManager();
+        }
+        return Wrapper.fileManager;
     }
 }
