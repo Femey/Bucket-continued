@@ -12,11 +12,11 @@ import org.lwjgl.opengl.Display;
 
 import java.io.IOException;
 
-@Mod(modid = "bucket", name = "Bucket", version = "1.1.2")
+@Mod(modid = "bucket", name = "Bucket", version = "1.1.4")
 public class Bucket {
     public static final String MODID = "bucket";
     public static final String MODNAME = "Bucket";
-    public static final String MODVER = "1.1.2";
+    public static final String MODVER = "1.1.4";
     public static final String NAME_UNICODE = " \u0299\u1D1C\u1D04\u1D0B\u1D07\u1D1B";
     public static final String Bucket_UNICODE = "\u0299\u1D1C\u1D04\u1D0B\u1D07\u1D1B";
     public static final String CHAT_SUFFIX = " \u23d0 \u0299\u1D1C\u1D04\u1D0B\u1D07\u1D1B";
@@ -56,7 +56,7 @@ public class Bucket {
     }
 
     public static void load() {
-        LOGGER.info("\n\nLoading Bucket 1.1.2");
+        LOGGER.info("\n\nLoading Bucket 1.1.4");
         unloaded = false;
         if (reloadManager != null) {
             reloadManager.unload();
@@ -102,7 +102,7 @@ public class Bucket {
     }
 
     public static void unload(boolean unload) {
-        LOGGER.info("\n\nUnloading Bucket 1.1.2");
+        LOGGER.info("\n\nUnloading Bucket 1.1.4");
         if (unload) {
             reloadManager = new ReloadManager();
             reloadManager.init(commandManager != null ? commandManager.getPrefix() : ".");
@@ -159,7 +159,7 @@ public class Bucket {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         customMainScreen = new GuiCustomMainScreen();
-        Display.setTitle("Bucket - v.1.1.2");
+        Display.setTitle("Bucket - v.1.1.4");
         Bucket.load();
     }
 }
