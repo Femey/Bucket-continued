@@ -18,7 +18,7 @@ public class BowBomb extends Module {
     private boolean shooting;
     private long lastShootTime;
 
-    public BowBomb() { super("BowBomb", "Uno hitter w bows", Module.Category.MISC, true, false, false); }
+    public BowBomb() { super("BowBomb", "Uno hitter w bows", Module.Category.TROLL, true, false, false); }
 
     public Setting <Boolean> Bows = this.register ( new Setting <> ( "Bows", true ) );
     public Setting <Boolean> pearls = this.register ( new Setting <> ( "Pearls", true ) );
