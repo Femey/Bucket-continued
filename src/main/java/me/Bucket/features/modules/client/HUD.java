@@ -58,7 +58,7 @@ public class HUD
     private final Setting<Boolean> totems = this.register(new Setting<Boolean>("Totems", Boolean.valueOf(false), "TotemHUD"));
     private final Setting<Boolean> queue = this.register(new Setting<Boolean>("2b2tQueue", Boolean.valueOf(false), "Shows the 2b2t queue."));
     private final Setting<Greeter> greeter = this.register(new Setting<Greeter>("Greeter", Greeter.NONE, "Greets you."));
-    private final Setting<String> spoofGreeter = this.register(new Setting<Object>("GreeterName", "Just_a_Raptor", v -> this.greeter.getValue() == Greeter.CUSTOM));
+    private final Setting<String> spoofGreeter = this.register(new Setting<Object>("GreeterName", "WobblyBananaHat", v -> this.greeter.getValue() == Greeter.CUSTOM));
     private final Setting<LagNotify> lag = this.register(new Setting<LagNotify>("Lag", LagNotify.GRAY, "Lag Notifier"));
     private final Setting<Boolean> hitMarkers = this.register(new Setting<Boolean>("HitMarkers", true));
     private final Setting<Sound> sound = this.register(new Setting<Object>("Sound", Sound.NONE, v -> this.hitMarkers.getValue()));
