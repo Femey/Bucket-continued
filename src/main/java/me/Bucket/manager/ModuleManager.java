@@ -36,11 +36,13 @@ public class ModuleManager
         this.modules.add(new NoatAura());
         this.modules.add(new AutoTrap());
         this.modules.add(new FemboyESP());
+        this.modules.add(new MainHandTotem());
         this.modules.add(new AutoCrystal());
         this.modules.add(new PumpkinOffhand());
         this.modules.add(new Criticals());
         this.modules.add(new BowSpam());
         this.modules.add(new Killaura());
+        this.modules.add(new BowBomb());
         this.modules.add(new HoleFiller());
         this.modules.add(new Selftrap());
         this.modules.add(new Webaura());
