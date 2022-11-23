@@ -17,7 +17,7 @@ public class ClickGui extends Module {
 
     public Setting<Boolean> rainbowRolling = (new Setting("RollingRainbow", Boolean.valueOf(false), v -> (((Boolean)this.colorSync.getValue()).booleanValue() && ((Boolean)Colors.INSTANCE.rainbow.getValue()).booleanValue())));
 
-    public Setting<String> prefix = register((new Setting("Prefix", ".")).setRenderName(true));
+    public Setting<String> prefix = register(new Setting("Prefix", "."));
 
     public Setting<Integer> red = register(new Setting("Red", Integer.valueOf(0), Integer.valueOf(0), Integer.valueOf(255)));
 
