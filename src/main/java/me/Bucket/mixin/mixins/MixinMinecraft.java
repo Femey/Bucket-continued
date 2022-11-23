@@ -59,20 +59,6 @@ public abstract class MixinMinecraft {
         }
     }
 
-    @Inject(method={"runTick()V"}, at={@At(value="RETURN")})
-    private void runTick(CallbackInfo callbackInfo) {
-        if (Minecraft.getMinecraft().currentScreen instanceof GuiMainMenu && Screens.INSTANCE.mainScreen.getValue().booleanValue()) {
-            Minecraft.getMinecraft().displayGuiScreen((GuiScreen)new GuiCustomMainScreen());
-        }
-    }
-
-    @Inject(method={"displayGuiScreen"}, at={@At(value="HEAD")})
-    private void displayGuiScreen(GuiScreen screen, CallbackInfo ci) {
-        if (screen instanceof GuiMainMenu) {
-            this.displayGuiScreen(new GuiCustomMainScreen());
-        }
-    }
-
     @Redirect(method={"run"}, at=@At(value="INVOKE", target="Lnet/minecraft/client/Minecraft;displayCrashReport(Lnet/minecraft/crash/CrashReport;)V"))
     public void displayCrashReportHook(Minecraft minecraft, CrashReport crashReport) {
         this.unload();
