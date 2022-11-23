@@ -24,31 +24,32 @@ public class ConfigManager
     public boolean savingConfig;
 
     public static void setValueFromJson(Feature feature, Setting setting, JsonElement element) {
+        String str;
         switch (setting.getType()) {
             case "Boolean": {
                 setting.setValue(element.getAsBoolean());
-                break;
+                return;
             }
             case "Double": {
                 setting.setValue(element.getAsDouble());
-                break;
+                return;
             }
             case "Float": {
                 setting.setValue(Float.valueOf(element.getAsFloat()));
-                break;
+                return;
             }
             case "Integer": {
                 setting.setValue(element.getAsInt());
-                break;
+                return;
             }
             case "String": {
-                String str = element.getAsString();
+                str = element.getAsString();
                 setting.setValue(str.replace("_", " "));
-                break;
+                return;
             }
             case "Bind": {
                 setting.setValue(new Bind.BindConverter().doBackward(element));
-                break;
+                return;
             }
             case "Enum": {
                 try {
@@ -57,12 +58,11 @@ public class ConfigManager
                     setting.setValue(value == null ? setting.getDefaultValue() : value);
                 } catch (Exception e) {
                 }
-                break;
+                return;
             }
-            default: {
-                Bucket.LOGGER.error("Unknown Setting type for: " + feature.getName() + " : " + setting.getName());
-            }
+
         }
+        Bucket.LOGGER.error("Unknown Setting type for: " + feature.getName() + " : " + setting.getName());
     }
 
     private static void loadFile(JsonObject input, Feature feature) {
