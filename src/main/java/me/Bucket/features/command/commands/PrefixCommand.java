@@ -16,6 +16,7 @@ public class PrefixCommand
             Command.sendMessage("\u00a7cSpecify a new prefix.");
             return;
         }
+        Bucket.commandManager.setPrefix(commands[0]);
         Bucket.moduleManager.getModuleByClass(ClickGui.class).prefix.setValue(commands[0]);
         Command.sendMessage("Prefix set to \u00a7a" + Bucket.commandManager.getPrefix());
     }
