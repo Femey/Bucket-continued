@@ -1,6 +1,5 @@
 package me.Bucket;
 
-import me.Bucket.features.gui.custom.GuiCustomMainScreen;
 import me.Bucket.features.modules.misc.RPC;
 import me.Bucket.manager.*;
 import net.minecraftforge.fml.common.Mod;
@@ -43,7 +42,6 @@ public class Bucket {
     public static HoleManager holeManager;
     public static NotificationManager notificationManager;
     public static SafetyManager safetyManager;
-    public static GuiCustomMainScreen customMainScreen;
     public static CosmeticsManager cosmeticsManager;
     public static NoStopManager baritoneManager;
     public static WaypointManager waypointManager;
