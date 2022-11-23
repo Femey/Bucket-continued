@@ -3,7 +3,7 @@
     "modid": "bucket",
     "name": "Bucket",
     "description": "very funny phobos skid",
-    "version": "1.1.5",
+    "version": "1.1.6",
     "mcversion": "1.12.2",
     "logoFile": "bucket.png",
     "updateUrl": "",
