@@ -2,7 +2,6 @@ package me.Bucket.mixin.mixins;
 
 import javax.annotation.Nullable;
 
-import me.Bucket.features.gui.custom.GuiCustomMainScreen;
 import me.Bucket.features.modules.client.Managers;
 import me.Bucket.features.modules.client.Screens;
 import me.Bucket.features.modules.player.MultiTask;
