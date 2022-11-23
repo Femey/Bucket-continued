@@ -204,11 +204,11 @@ public class HUD
         final String grayString = this.grayNess.getValue() ? "§7" : "";
         switch (this.watermark.getValue()) {
             case Bucket: {
-                this.renderer.drawString("Bucket" + (this.modeVer.getValue() ? " v1.1.4" : ""), 2.0f, 2.0f, (this.rolling.getValue() && this.rainbow.getValue()) ? this.colorMap.get(2) : this.color, true);
+                this.renderer.drawString("Bucket" + (this.modeVer.getValue() ? " v1.1.5" : ""), 2.0f, 2.0f, (this.rolling.getValue() && this.rainbow.getValue()) ? this.colorMap.get(2) : this.color, true);
                 break;
             }
             case CUSTOM: {
-                this.renderer.drawString(this.customWatermark.getValue() + (this.modeVer.getValue() ? " v1.1.4" : ""), 2.0f, 2.0f, (this.rolling.getValue() && this.rainbow.getValue()) ? this.colorMap.get(2) : this.color, true);
+                this.renderer.drawString(this.customWatermark.getValue() + (this.modeVer.getValue() ? " v1.1.5" : ""), 2.0f, 2.0f, (this.rolling.getValue() && this.rainbow.getValue()) ? this.colorMap.get(2) : this.color, true);
                 break;
             }
         }
