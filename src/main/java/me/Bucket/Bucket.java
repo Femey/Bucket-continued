@@ -156,7 +156,6 @@ public class Bucket {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        customMainScreen = new GuiCustomMainScreen();
         Display.setTitle("Bucket - v.1.1.5");
         Bucket.load();
     }
