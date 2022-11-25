@@ -36,6 +36,8 @@ public class ModuleManager
         this.modules.add(new NoatAura());
         this.modules.add(new AutoTrap());
         this.modules.add(new FemboyESP());
+        this.modules.add(new NoChinaText());
+        this.modules.add(new ChinaText());
         this.modules.add(new MainHandTotem());
         this.modules.add(new AutoCrystal());
         this.modules.add(new PumpkinOffhand());
