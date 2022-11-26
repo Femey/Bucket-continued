@@ -94,7 +94,6 @@ public class Bucket {
         if (moduleManager.getModuleByClass(RPC.class).isEnabled()) {
             DiscordPresence.start();
         }
-        cosmeticsManager = new CosmeticsManager();
         LOGGER.info("Bucket initialized!\n");
     }
 
