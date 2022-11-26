@@ -4,7 +4,6 @@ import me.Bucket.features.Feature;
 import me.Bucket.features.gui.BucketGui;
 import me.Bucket.features.modules.Module;
 import me.Bucket.features.modules.client.*;
-import me.Bucket.features.modules.client.Cosmetics;
 import me.Bucket.features.modules.combat.*;
 import me.Bucket.features.modules.misc.*;
 import me.Bucket.features.modules.movement.*;
@@ -174,7 +173,6 @@ public class ModuleManager
         this.modules.add(new Managers());
         this.modules.add(new Components());
         this.modules.add(new StreamerMode());
-        this.modules.add(new Capes());
         this.modules.add(new Colors());
         this.modules.add(new ServerModule());
         this.modules.add(new Screens());
@@ -285,7 +283,6 @@ public class ModuleManager
         this.moduleColorMap.put(this.getModuleByClass(TrueDurability.class), new Color(254, 161, 51));
         this.moduleColorMap.put(this.getModuleByClass(XCarry.class), new Color(254, 161, 51));
         this.moduleColorMap.put(this.getModuleByClass(Yaw.class), new Color(115, 39, 141));
-        this.moduleColorMap.put(this.getModuleByClass(Capes.class), new Color(26, 135, 104));
         this.moduleColorMap.put(this.getModuleByClass(ClickGui.class), new Color(26, 81, 135));
         this.moduleColorMap.put(this.getModuleByClass(Colors.class), new Color(135, 133, 26));
         this.moduleColorMap.put(this.getModuleByClass(Components.class), new Color(135, 26, 26));
