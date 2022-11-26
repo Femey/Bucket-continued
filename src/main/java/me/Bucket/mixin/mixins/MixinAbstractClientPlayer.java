@@ -26,20 +26,5 @@ public abstract class MixinAbstractClientPlayer {
             callbackInfoReturnable.setReturnValue(new ResourceLocation("textures/shinechams3.png"));
         }
     }
-
-    @Inject(method={"getLocationCape"}, at={@At(value="HEAD")}, cancellable=true)
-    public void getLocationCape(CallbackInfoReturnable<ResourceLocation> callbackInfoReturnable) {
-        if (Capes.getInstance().isEnabled()) {
-            NetworkPlayerInfo info = this.getPlayerInfo();
-            UUID uuid = null;
-            if (info != null) {
-                uuid = this.getPlayerInfo().getGameProfile().getId();
-            }
-            ResourceLocation cape = Capes.getCapeResource((AbstractClientPlayer)(Object)this);
-            if (uuid != null && Capes.hasCape(uuid)) {
-                callbackInfoReturnable.setReturnValue(cape);
-            }
-        }
-    }
 }
 
