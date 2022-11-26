@@ -42,7 +42,6 @@ public class Bucket {
     public static HoleManager holeManager;
     public static NotificationManager notificationManager;
     public static SafetyManager safetyManager;
-    public static CosmeticsManager cosmeticsManager;
     public static NoStopManager baritoneManager;
     public static WaypointManager waypointManager;
     @Mod.Instance
