@@ -157,7 +157,6 @@ public class ModuleManager
         this.modules.add(new OffscreenESP());
         this.modules.add(new HandColor());
         this.modules.add(new VoidESP());
-        this.modules.add(new Cosmetics());
         this.modules.add(new CrystalScale());
         this.modules.add(new AssESP());
         this.modules.add(new AutoSex());
