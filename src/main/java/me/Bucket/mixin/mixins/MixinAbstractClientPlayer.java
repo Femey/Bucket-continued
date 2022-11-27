@@ -3,7 +3,6 @@ package me.Bucket.mixin.mixins;
 import java.util.UUID;
 import javax.annotation.Nullable;
 
-import me.Bucket.features.modules.client.Capes;
 import me.Bucket.features.modules.render.Chams;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.network.NetworkPlayerInfo;
