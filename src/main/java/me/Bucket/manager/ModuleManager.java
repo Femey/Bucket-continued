@@ -163,7 +163,6 @@ public class ModuleManager
         this.modules.add(new ClickGui());
         this.modules.add(new Managers());
         this.modules.add(new Components());
-        this.modules.add(new StreamerMode());
         this.modules.add(new Colors());
         this.modules.add(new ServerModule());
         this.modules.add(new Screens());
@@ -277,7 +276,6 @@ public class ModuleManager
         this.moduleColorMap.put(this.getModuleByClass(ServerModule.class), new Color(60, 110, 175));
         this.moduleColorMap.put(this.getModuleByClass(Media.class), new Color(138, 45, 13));
         this.moduleColorMap.put(this.getModuleByClass(Screens.class), new Color(165, 89, 101));
-        this.moduleColorMap.put(this.getModuleByClass(StreamerMode.class), new Color(0, 0, 0));
         for (Module module : this.modules) {
             module.animation.start();
         }
