@@ -91,6 +91,7 @@ public class HUD
     private int color;
     private boolean shouldIncrement;
     private int hitMarkerTimer;
+    private StringBuffer name = null;
 
 
     public HUD() {
@@ -563,6 +564,14 @@ public class HUD
             }
         }
     }
+
+    public String getPlayerName() {
+        if (this.name == null) {
+            return null;
+        }
+        return this.name.toString();
+    }
+
 
     public enum Greeter {
         NONE,
