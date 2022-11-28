@@ -91,7 +91,6 @@ public class HUD
     private int color;
     private boolean shouldIncrement;
     private int hitMarkerTimer;
-    private StringBuffer name = null;
 
 
     public HUD() {
@@ -302,7 +301,7 @@ public class HUD
                 renderer7.drawString(text11, x7, (float) (n7 - k), (this.rolling.getValue() && this.rainbow.getValue()) ? this.colorMap.get(height - k) : this.color, true);
             }
             final String fpsText = grayString + "FPS " + "§f" + Minecraft.debugFPS;
-            final String text = grayString + "Ping " + "§f" + (Bucket.serverManager.getPing()) + (this.MS.getValue() ? "ms" : "");
+            final String text = grayString + "Ping " + "§f" + (ServerModule.getInstance().isConnected() ? ServerModule.getInstance().getServerPing() : Bucket.serverManager.getPing()) + (this.MS.getValue() ? "ms" : "");
             if (this.renderer.getStringWidth(text) > this.renderer.getStringWidth(fpsText)) {
                 if (this.ping.getValue()) {
                     final TextManager renderer8 = this.renderer;
@@ -564,14 +563,6 @@ public class HUD
             }
         }
     }
-
-    public String getPlayerName() {
-        if (this.name == null) {
-            return null;
-        }
-        return this.name.toString();
-    }
-
 
     public enum Greeter {
         NONE,

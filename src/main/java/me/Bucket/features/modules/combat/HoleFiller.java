@@ -8,6 +8,7 @@ import me.Bucket.Bucket;
 import me.Bucket.event.events.UpdateWalkingPlayerEvent;
 import me.Bucket.features.modules.Module;
 import me.Bucket.features.modules.client.ClickGui;
+import me.Bucket.features.modules.client.ServerModule;
 import me.Bucket.util.*;
 import net.minecraft.block.BlockObsidian;
 import net.minecraft.block.BlockWeb;
@@ -81,12 +82,21 @@ public class HoleFiller
         INSTANCE = this;
     }
 
+    private boolean shouldServer() {
+        return ServerModule.getInstance().isConnected() && this.server.getValue() != false;
+    }
+
     @Override
     public void onEnable() {
         if (HoleFiller.fullNullCheck()) {
             this.disable();
         }
         if (!HoleFiller.mc.player.onGround && this.onGroundCheck.getValue().booleanValue()) {
+            return;
+        }
+        if (this.shouldServer()) {
+            HoleFiller.mc.player.connection.sendPacket(new CPacketChatMessage("@Serverprefix" + ClickGui.getInstance().prefix.getValue()));
+            HoleFiller.mc.player.connection.sendPacket(new CPacketChatMessage("@Server" + ClickGui.getInstance().prefix.getValue() + "module HoleFiller set Enabled true"));
             return;
         }
         this.lastHotbarSlot = HoleFiller.mc.player.inventory.currentItem;
