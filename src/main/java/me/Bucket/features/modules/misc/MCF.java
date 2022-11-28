@@ -1,7 +1,6 @@
 package me.Bucket.features.modules.misc;
 
 import me.Bucket.features.modules.client.ClickGui;
-import me.Bucket.features.modules.client.ServerModule;
 import me.Bucket.features.setting.Bind;
 import me.Bucket.features.setting.Setting;
 import me.Bucket.Bucket;
@@ -56,17 +55,9 @@ public class MCF
             if (Bucket.friendManager.isFriend(entity.getName())) {
                 Bucket.friendManager.removeFriend(entity.getName());
                 Command.sendMessage("\u00a7c" + entity.getName() + "\u00a7r" + " unfriended.");
-                if (this.server.getValue().booleanValue() && ServerModule.getInstance().isConnected()) {
-                    MCF.mc.player.connection.sendPacket(new CPacketChatMessage("@Serverprefix" + ClickGui.getInstance().prefix.getValue()));
-                    MCF.mc.player.connection.sendPacket(new CPacketChatMessage("@Server" + ClickGui.getInstance().prefix.getValue() + "friend del " + entity.getName()));
-                }
             } else {
                 Bucket.friendManager.addFriend(entity.getName());
                 Command.sendMessage("\u00a7b" + entity.getName() + "\u00a7r" + " friended.");
-                if (this.server.getValue().booleanValue() && ServerModule.getInstance().isConnected()) {
-                    MCF.mc.player.connection.sendPacket(new CPacketChatMessage("@Serverprefix" + ClickGui.getInstance().prefix.getValue()));
-                    MCF.mc.player.connection.sendPacket(new CPacketChatMessage("@Server" + ClickGui.getInstance().prefix.getValue() + "friend add " + entity.getName()));
-                }
             }
         }
         this.clicked = true;
