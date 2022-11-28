@@ -9,7 +9,6 @@ import me.Bucket.features.command.Command;
 import me.Bucket.features.modules.Module;
 import me.Bucket.features.modules.client.ClickGui;
 import me.Bucket.features.modules.client.Colors;
-import me.Bucket.features.modules.client.ServerModule;
 import me.Bucket.util.*;
 import me.Bucket.util.Timer;
 import net.minecraft.block.BlockAir;
@@ -169,10 +168,6 @@ public class AutoTrap
                 RenderUtil.drawBoxESP(pos, this.colorSync.getValue() != false ? Colors.INSTANCE.getCurrentColor() : new Color(this.red.getValue(), this.green.getValue(), this.blue.getValue(), this.alpha.getValue()), this.customOutline.getValue(), new Color(this.cRed.getValue(), this.cGreen.getValue(), this.cBlue.getValue(), this.cAlpha.getValue()), this.lineWidth.getValue().floatValue(), this.outline.getValue(), this.box.getValue(), this.boxAlpha.getValue(), false);
             }
         }
-    }
-
-    private boolean shouldServer() {
-        return ServerModule.getInstance().isConnected() && this.server.getValue() != false;
     }
 
     private void doTrap() {
