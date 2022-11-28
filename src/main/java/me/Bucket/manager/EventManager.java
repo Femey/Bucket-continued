@@ -5,7 +5,6 @@ import me.Bucket.event.events.*;
 import me.Bucket.features.Feature;
 import me.Bucket.features.command.Command;
 import me.Bucket.features.modules.client.Managers;
-import me.Bucket.features.modules.client.ServerModule;
 import me.Bucket.features.modules.combat.AutoCrystal;
 import me.Bucket.Bucket;
 import me.Bucket.util.GLUProjection;
@@ -68,14 +67,6 @@ public class EventManager
                 Bucket.moduleManager.alphabeticallySortModules();
                 this.timer.reset();
             }
-        }
-    }
-
-    @SubscribeEvent
-    public void onSettingChange(ClientEvent event) {
-        if (event.getStage() == 2 && mc.getConnection() != null && ServerModule.getInstance().isConnected() && EventManager.mc.world != null) {
-            String command = "@Server" + ServerModule.getInstance().getServerPrefix() + "module " + event.getSetting().getFeature().getName() + " set " + event.getSetting().getName() + " " + event.getSetting().getPlannedValue().toString();
-            CPacketChatMessage cPacketChatMessage = new CPacketChatMessage(command);
         }
     }
 
