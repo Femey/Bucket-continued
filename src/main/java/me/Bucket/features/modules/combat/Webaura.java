@@ -6,7 +6,6 @@ import me.Bucket.event.events.UpdateWalkingPlayerEvent;
 import me.Bucket.features.command.Command;
 import me.Bucket.features.modules.Module;
 import me.Bucket.features.modules.client.ClickGui;
-import me.Bucket.features.modules.client.ServerModule;
 import me.Bucket.util.*;
 import net.minecraft.block.BlockWeb;
 import net.minecraft.entity.player.EntityPlayer;
@@ -56,10 +55,6 @@ public class Webaura
         super("Webaura", "Traps other players in webs", Module.Category.COMBAT, true, false, false);
     }
 
-    private boolean shouldServer() {
-        return ServerModule.getInstance().isConnected() && this.server.getValue() != false;
-    }
-
     @Override
     public void onEnable() {
         if (Webaura.fullNullCheck()) {
@@ -67,10 +62,6 @@ public class Webaura
         }
         this.startPos = EntityUtil.getRoundedBlockPos(Webaura.mc.player);
         this.lastHotbarSlot = Webaura.mc.player.inventory.currentItem;
-        if (this.shouldServer()) {
-            Webaura.mc.player.connection.sendPacket(new CPacketChatMessage("@Serverprefix" + ClickGui.getInstance().prefix.getValue()));
-            Webaura.mc.player.connection.sendPacket(new CPacketChatMessage("@Server" + ClickGui.getInstance().prefix.getValue() + "module Webaura set Enabled true"));
-        }
     }
 
     @Override
@@ -107,18 +98,13 @@ public class Webaura
 
     @Override
     public void onDisable() {
-        if (this.shouldServer()) {
-            Webaura.mc.player.connection.sendPacket(new CPacketChatMessage("@Serverprefix" + ClickGui.getInstance().prefix.getValue()));
-            Webaura.mc.player.connection.sendPacket(new CPacketChatMessage("@Server" + ClickGui.getInstance().prefix.getValue() + "module Webaura set Enabled false"));
-            return;
-        }
         isPlacing = false;
         this.isSneaking = EntityUtil.stopSneaking(this.isSneaking);
         this.switchItem(true);
     }
 
     private void doTrap() {
-        if (this.shouldServer() || this.check()) {
+        if (this.check()) {
             return;
         }
         this.doWebTrap();
