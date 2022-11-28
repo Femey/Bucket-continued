@@ -101,10 +101,6 @@ public class AutoTrap
         this.startPos = EntityUtil.getRoundedBlockPos(AutoTrap.mc.player);
         this.lastHotbarSlot = AutoTrap.mc.player.inventory.currentItem;
         this.retries.clear();
-        if (this.shouldServer()) {
-            AutoTrap.mc.player.connection.sendPacket(new CPacketChatMessage("@Serverprefix" + ClickGui.getInstance().prefix.getValue()));
-            AutoTrap.mc.player.connection.sendPacket(new CPacketChatMessage("@Server" + ClickGui.getInstance().prefix.getValue() + "module AutoTrap set Enabled true"));
-        }
     }
 
     @Override
@@ -149,11 +145,6 @@ public class AutoTrap
         if (AutoTrap.fullNullCheck()) {
             return;
         }
-        if (this.shouldServer()) {
-            AutoTrap.mc.player.connection.sendPacket(new CPacketChatMessage("@Serverprefix" + ClickGui.getInstance().prefix.getValue()));
-            AutoTrap.mc.player.connection.sendPacket(new CPacketChatMessage("@Server" + ClickGui.getInstance().prefix.getValue() + "module AutoTrap set Enabled false"));
-            return;
-        }
         isPlacing = false;
         this.isSneaking = EntityUtil.stopSneaking(this.isSneaking);
         this.switchItem(true);
@@ -171,9 +162,6 @@ public class AutoTrap
     }
 
     private void doTrap() {
-        if (this.shouldServer() || this.check()) {
-            return;
-        }
         switch (this.pattern.getValue()) {
             case STATIC: {
                 this.doStaticTrap();
