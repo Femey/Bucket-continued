@@ -7,7 +7,6 @@ import me.Bucket.event.events.PacketEvent;
 import me.Bucket.event.events.UpdateWalkingPlayerEvent;
 import me.Bucket.features.modules.Module;
 import me.Bucket.features.modules.client.ClickGui;
-import me.Bucket.features.modules.client.ServerModule;
 import me.Bucket.util.*;
 import net.minecraft.block.BlockPlanks;
 import net.minecraft.block.BlockWorkbench;
@@ -99,20 +98,12 @@ public class BedBomb
 
     @Override
     public void onEnable() {
-        if (!BedBomb.fullNullCheck() && this.shouldServer()) {
-            BedBomb.mc.player.connection.sendPacket(new CPacketChatMessage("@Serverprefix" + ClickGui.getInstance().prefix.getValue()));
-            BedBomb.mc.player.connection.sendPacket(new CPacketChatMessage("@Server" + ClickGui.getInstance().prefix.getValue() + "module BedBomb set Enabled true"));
-        }
     }
 
     @Override
     public void onDisable() {
-        if (!BedBomb.fullNullCheck() && this.shouldServer()) {
-            BedBomb.mc.player.connection.sendPacket(new CPacketChatMessage("@Serverprefix" + ClickGui.getInstance().prefix.getValue()));
-            BedBomb.mc.player.connection.sendPacket(new CPacketChatMessage("@Server" + ClickGui.getInstance().prefix.getValue() + "module BedBomb set Enabled false"));
-            if (this.sslot.getValue().booleanValue()) {
-                BedBomb.mc.player.connection.sendPacket(new CPacketHeldItemChange(BedBomb.mc.player.inventory.currentItem));
-            }
+        if (this.sslot.getValue().booleanValue()) {
+            BedBomb.mc.player.connection.sendPacket(new CPacketHeldItemChange(BedBomb.mc.player.inventory.currentItem));
         }
     }
 
@@ -126,13 +117,9 @@ public class BedBomb
         }
     }
 
-    private boolean shouldServer() {
-        return ServerModule.getInstance().isConnected() && this.server.getValue() != false;
-    }
-
     @SubscribeEvent
     public void onUpdateWalkingPlayer(UpdateWalkingPlayerEvent event) {
-        if (BedBomb.fullNullCheck() || BedBomb.mc.player.dimension != -1 && BedBomb.mc.player.dimension != 1 || this.shouldServer()) {
+        if (BedBomb.fullNullCheck() || BedBomb.mc.player.dimension != -1 && BedBomb.mc.player.dimension != 1) {
             return;
         }
         if (event.getStage() == 0) {
