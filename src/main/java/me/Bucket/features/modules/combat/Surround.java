@@ -9,7 +9,6 @@ import me.Bucket.features.command.Command;
 import me.Bucket.features.modules.Module;
 import me.Bucket.features.modules.client.ClickGui;
 import me.Bucket.features.modules.client.Colors;
-import me.Bucket.features.modules.client.ServerModule;
 import me.Bucket.util.*;
 import me.Bucket.util.Timer;
 import net.minecraft.block.BlockAir;
@@ -100,11 +99,6 @@ public class Surround
                 Bucket.positionManager.setPositionPacket((double) this.startPos.getX() + 0.5, this.startPos.getY(), (double) this.startPos.getZ() + 0.5, true, true, true);
             }
         }
-        if (this.shouldServer()) {
-            Surround.mc.player.connection.sendPacket(new CPacketChatMessage("@Serverprefix" + ClickGui.getInstance().prefix.getValue()));
-            Surround.mc.player.connection.sendPacket(new CPacketChatMessage("@Server" + ClickGui.getInstance().prefix.getValue() + "module Surround set Enabled true"));
-            return;
-        }
         this.retries.clear();
         this.retryTimer.reset();
     }
@@ -138,11 +132,6 @@ public class Surround
         if (Surround.nullCheck()) {
             return;
         }
-        if (this.shouldServer()) {
-            Surround.mc.player.connection.sendPacket(new CPacketChatMessage("@Serverprefix" + ClickGui.getInstance().prefix.getValue()));
-            Surround.mc.player.connection.sendPacket(new CPacketChatMessage("@Server" + ClickGui.getInstance().prefix.getValue() + "module Surround set Enabled false"));
-            return;
-        }
         isPlacing = false;
         this.isSneaking = EntityUtil.stopSneaking(this.isSneaking);
         this.switchItem(true);
@@ -173,10 +162,6 @@ public class Surround
             }
         }
         return "\u00a7aSecure";
-    }
-
-    private boolean shouldServer() {
-        return ServerModule.getInstance().isConnected() && this.server.getValue() != false;
     }
 
     private void doFeetPlace() {
@@ -281,7 +266,7 @@ public class Surround
     }
 
     private boolean check() {
-        if (Surround.fullNullCheck() || this.shouldServer()) {
+        if (Surround.fullNullCheck()) {
             return true;
         }
         if (this.endPortals.getValue().booleanValue()) {
