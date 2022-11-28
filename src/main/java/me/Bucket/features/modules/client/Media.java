@@ -22,14 +22,15 @@ public class Media
     }
 
     public static String getPlayerName() {
-        if (Media.fullNullCheck() || !ServerModule.getInstance().isConnected()) {
+        if (Media.fullNullCheck()) {
             return mc.getSession().getUsername();
         }
-        String name = ServerModule.getInstance().getPlayerName();
+        String name = HUD.getInstance().getPlayerName();
         if (name == null || name.isEmpty()) {
             return mc.getSession().getUsername();
         }
         return name;
+
     }
 }
 
