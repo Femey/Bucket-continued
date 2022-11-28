@@ -7,7 +7,6 @@ import me.Bucket.Bucket;
 import me.Bucket.event.events.PacketEvent;
 import me.Bucket.event.events.ProcessRightClickBlockEvent;
 import me.Bucket.features.modules.Module;
-import me.Bucket.features.modules.client.ServerModule;
 import me.Bucket.mixin.mixins.accessors.IContainer;
 import me.Bucket.mixin.mixins.accessors.ISPacketSetSlot;
 import me.Bucket.util.EntityUtil;
@@ -255,12 +254,6 @@ public class Offhand
     @SubscribeEvent
     public void onPacketReceive(PacketEvent.Receive event) {
         SPacketSetSlot packet;
-        if (ServerModule.getInstance().isConnected() && event.getPacket() instanceof SPacketSetSlot && (packet = event.getPacket()).getSlot() == -1 && packet.getWindowId() != -1) {
-            ((IContainer) Offhand.mc.player.openContainer).setTransactionID((short) packet.getWindowId());
-            ((ISPacketSetSlot) packet).setWindowId(-1);
-            this.serverTimer.reset();
-            this.switchedForHealthReason = true;
-        }
     }
 
     @Override
