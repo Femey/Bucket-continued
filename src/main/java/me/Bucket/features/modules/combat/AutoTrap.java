@@ -1,308 +1,543 @@
 package me.Bucket.features.modules.combat;
 
-import me.Bucket.features.modules.player.BlockTweaks;
+import com.google.common.util.concurrent.AtomicDouble;
 import me.Bucket.features.setting.Setting;
 import me.Bucket.Bucket;
-import me.Bucket.event.events.Render3DEvent;
+import me.Bucket.event.events.PacketEvent;
 import me.Bucket.event.events.UpdateWalkingPlayerEvent;
-import me.Bucket.features.command.Command;
 import me.Bucket.features.modules.Module;
 import me.Bucket.features.modules.client.ClickGui;
-import me.Bucket.features.modules.client.Colors;
 import me.Bucket.util.*;
-import me.Bucket.util.Timer;
-import net.minecraft.block.BlockAir;
-import net.minecraft.block.BlockEndPortalFrame;
-import net.minecraft.block.BlockObsidian;
+import net.minecraft.block.BlockPlanks;
+import net.minecraft.block.BlockWorkbench;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.gui.inventory.GuiCrafting;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
+import net.minecraft.inventory.ClickType;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.CPacketChatMessage;
+import net.minecraft.network.play.client.CPacketEntityAction;
+import net.minecraft.network.play.client.CPacketHeldItemChange;
+import net.minecraft.network.play.client.CPacketPlayer;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityBed;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.awt.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
-public class AutoTrap
+public class BedBomb
         extends Module {
-    public static boolean isPlacing = false;
     private final Setting<Boolean> server = this.register(new Setting<Boolean>("Server", false));
-    private final Setting<Integer> delay = this.register(new Setting<Integer>("Delay/Place", 50, 0, 250));
-    private final Setting<Integer> blocksPerPlace = this.register(new Setting<Integer>("Block/Place", 8, 1, 30));
-    private final Setting<Double> targetRange = this.register(new Setting<Double>("TargetRange", 10.0, 0.0, 20.0));
-    private final Setting<Double> range = this.register(new Setting<Double>("PlaceRange", 6.0, 0.0, 10.0));
-    private final Setting<TargetMode> targetMode = this.register(new Setting<TargetMode>("Target", TargetMode.CLOSEST));
-    private final Setting<InventoryUtil.Switch> switchMode = this.register(new Setting<InventoryUtil.Switch>("Switch", InventoryUtil.Switch.NORMAL));
-    private final Setting<Boolean> rotate = this.register(new Setting<Boolean>("Rotate", true));
-    private final Setting<Boolean> raytrace = this.register(new Setting<Boolean>("Raytrace", false));
-    private final Setting<Pattern> pattern = this.register(new Setting<Pattern>("Pattern", Pattern.STATIC));
-    private final Setting<Integer> extend = this.register(new Setting<Object>("Extend", 4, 1, 4, v -> this.pattern.getValue() != Pattern.STATIC, "Extending the Trap."));
-    private final Setting<Boolean> antiScaffold = this.register(new Setting<Boolean>("AntiScaffold", false));
-    private final Setting<Boolean> antiStep = this.register(new Setting<Boolean>("AntiStep", false));
-    private final Setting<Boolean> face = this.register(new Setting<Boolean>("Face", true));
-    private final Setting<Boolean> legs = this.register(new Setting<Object>("Legs", Boolean.valueOf(false), v -> this.pattern.getValue() != Pattern.OPEN));
-    private final Setting<Boolean> platform = this.register(new Setting<Object>("Platform", Boolean.valueOf(false), v -> this.pattern.getValue() != Pattern.OPEN));
-    private final Setting<Boolean> antiDrop = this.register(new Setting<Boolean>("AntiDrop", false));
-    private final Setting<Double> speed = this.register(new Setting<Double>("Speed", 10.0, 0.0, 30.0));
-    private final Setting<Boolean> antiSelf = this.register(new Setting<Boolean>("AntiSelf", false));
-    private final Setting<Integer> eventMode = this.register(new Setting<Integer>("Updates", 3, 1, 3));
-    private final Setting<Boolean> freecam = this.register(new Setting<Boolean>("Freecam", false));
-    private final Setting<Boolean> info = this.register(new Setting<Boolean>("Info", false));
-    private final Setting<Boolean> entityCheck = this.register(new Setting<Boolean>("NoBlock", true));
-    private final Setting<Boolean> noScaffoldExtend = this.register(new Setting<Boolean>("NoScaffoldExtend", false));
-    private final Setting<Boolean> disable = this.register(new Setting<Boolean>("TSelfMove", false));
-    private final Setting<Boolean> packet = this.register(new Setting<Boolean>("Packet", false));
-    private final Setting<Boolean> airPacket = this.register(new Setting<Object>("AirPacket", Boolean.valueOf(false), v -> this.packet.getValue()));
-    private final Setting<Integer> retryer = this.register(new Setting<Integer>("Retries", 4, 1, 15));
-    private final Setting<Boolean> endPortals = this.register(new Setting<Boolean>("EndPortals", false));
-    private final Setting<Boolean> render = this.register(new Setting<Boolean>("Render", true));
-    public final Setting<Boolean> colorSync = this.register(new Setting<Object>("Sync", Boolean.valueOf(false), v -> this.render.getValue()));
-    public final Setting<Boolean> box = this.register(new Setting<Object>("Box", Boolean.valueOf(false), v -> this.render.getValue()));
-    public final Setting<Boolean> outline = this.register(new Setting<Object>("Outline", Boolean.valueOf(true), v -> this.render.getValue()));
-    public final Setting<Boolean> customOutline = this.register(new Setting<Object>("CustomLine", Boolean.valueOf(false), v -> this.outline.getValue() != false && this.render.getValue() != false));
-    private final Setting<Integer> red = this.register(new Setting<Object>("Red", Integer.valueOf(0), Integer.valueOf(0), Integer.valueOf(255), v -> this.render.getValue()));
-    private final Setting<Integer> green = this.register(new Setting<Object>("Green", Integer.valueOf(255), Integer.valueOf(0), Integer.valueOf(255), v -> this.render.getValue()));
-    private final Setting<Integer> blue = this.register(new Setting<Object>("Blue", Integer.valueOf(0), Integer.valueOf(0), Integer.valueOf(255), v -> this.render.getValue()));
-    private final Setting<Integer> alpha = this.register(new Setting<Object>("Alpha", Integer.valueOf(255), Integer.valueOf(0), Integer.valueOf(255), v -> this.render.getValue()));
-    private final Setting<Integer> boxAlpha = this.register(new Setting<Object>("BoxAlpha", Integer.valueOf(125), Integer.valueOf(0), Integer.valueOf(255), v -> this.box.getValue() != false && this.render.getValue() != false));
-    private final Setting<Float> lineWidth = this.register(new Setting<Object>("LineWidth", Float.valueOf(1.0f), Float.valueOf(0.1f), Float.valueOf(5.0f), v -> this.outline.getValue() != false && this.render.getValue() != false));
-    private final Setting<Integer> cRed = this.register(new Setting<Object>("OL-Red", Integer.valueOf(255), Integer.valueOf(0), Integer.valueOf(255), v -> this.customOutline.getValue() != false && this.outline.getValue() != false && this.render.getValue() != false));
-    private final Setting<Integer> cGreen = this.register(new Setting<Object>("OL-Green", Integer.valueOf(255), Integer.valueOf(0), Integer.valueOf(255), v -> this.customOutline.getValue() != false && this.outline.getValue() != false && this.render.getValue() != false));
-    private final Setting<Integer> cBlue = this.register(new Setting<Object>("OL-Blue", Integer.valueOf(255), Integer.valueOf(0), Integer.valueOf(255), v -> this.customOutline.getValue() != false && this.outline.getValue() != false && this.render.getValue() != false));
-    private final Setting<Integer> cAlpha = this.register(new Setting<Object>("OL-Alpha", Integer.valueOf(255), Integer.valueOf(0), Integer.valueOf(255), v -> this.customOutline.getValue() != false && this.outline.getValue() != false && this.render.getValue() != false));
-    private final Timer timer = new Timer();
-    private final Map<BlockPos, Integer> retries = new HashMap<BlockPos, Integer>();
-    private final Timer retryTimer = new Timer();
-    private final Map<BlockPos, IBlockState> toAir = new HashMap<BlockPos, IBlockState>();
-    public EntityPlayer target;
-    private boolean didPlace = false;
-    private boolean switchedItem;
-    private boolean isSneaking;
-    private int lastHotbarSlot;
-    private int placements = 0;
-    private boolean smartRotate = false;
-    private BlockPos startPos = null;
-    private List<Vec3d> currentPlaceList = new ArrayList<Vec3d>();
+    private final Setting<Boolean> place = this.register(new Setting<Boolean>("Place", false));
+    private final Setting<Integer> placeDelay = this.register(new Setting<Object>("Placedelay", Integer.valueOf(50), Integer.valueOf(0), Integer.valueOf(500), v -> this.place.getValue()));
+    private final Setting<Float> placeRange = this.register(new Setting<Object>("PlaceRange", Float.valueOf(6.0f), Float.valueOf(1.0f), Float.valueOf(10.0f), v -> this.place.getValue()));
+    private final Setting<Boolean> extraPacket = this.register(new Setting<Object>("InsanePacket", Boolean.valueOf(false), v -> this.place.getValue()));
+    private final Setting<Boolean> packet = this.register(new Setting<Object>("Packet", Boolean.valueOf(false), v -> this.place.getValue()));
+    private final Setting<Boolean> explode = this.register(new Setting<Boolean>("Break", true));
+    private final Setting<BreakLogic> breakMode = this.register(new Setting<Object>("BreakMode", BreakLogic.ALL, v -> this.explode.getValue()));
+    private final Setting<Integer> breakDelay = this.register(new Setting<Object>("Breakdelay", Integer.valueOf(50), Integer.valueOf(0), Integer.valueOf(500), v -> this.explode.getValue()));
+    private final Setting<Float> breakRange = this.register(new Setting<Object>("BreakRange", Float.valueOf(6.0f), Float.valueOf(1.0f), Float.valueOf(10.0f), v -> this.explode.getValue()));
+    private final Setting<Float> minDamage = this.register(new Setting<Object>("MinDamage", Float.valueOf(5.0f), Float.valueOf(1.0f), Float.valueOf(36.0f), v -> this.explode.getValue()));
+    private final Setting<Float> range = this.register(new Setting<Object>("Range", Float.valueOf(10.0f), Float.valueOf(1.0f), Float.valueOf(12.0f), v -> this.explode.getValue()));
+    private final Setting<Boolean> suicide = this.register(new Setting<Object>("Suicide", Boolean.valueOf(false), v -> this.explode.getValue()));
+    private final Setting<Boolean> removeTiles = this.register(new Setting<Boolean>("RemoveTiles", false));
+    private final Setting<Boolean> rotate = this.register(new Setting<Boolean>("Rotate", false));
+    private final Setting<Boolean> oneDot15 = this.register(new Setting<Boolean>("1.15", false));
+    private final Setting<Logic> logic = this.register(new Setting<Object>("Logic", Logic.BREAKPLACE, v -> this.place.getValue() != false && this.explode.getValue() != false));
+    private final Setting<Boolean> craft = this.register(new Setting<Boolean>("Craft", false));
+    private final Setting<Boolean> placeCraftingTable = this.register(new Setting<Object>("PlaceTable", Boolean.valueOf(false), v -> this.craft.getValue()));
+    private final Setting<Boolean> openCraftingTable = this.register(new Setting<Object>("OpenTable", Boolean.valueOf(false), v -> this.craft.getValue()));
+    private final Setting<Boolean> craftTable = this.register(new Setting<Object>("CraftTable", Boolean.valueOf(false), v -> this.craft.getValue()));
+    private final Setting<Float> tableRange = this.register(new Setting<Object>("TableRange", Float.valueOf(6.0f), Float.valueOf(1.0f), Float.valueOf(10.0f), v -> this.craft.getValue()));
+    private final Setting<Integer> craftDelay = this.register(new Setting<Object>("CraftDelay", Integer.valueOf(4), Integer.valueOf(1), Integer.valueOf(10), v -> this.craft.getValue()));
+    private final Setting<Integer> tableSlot = this.register(new Setting<Object>("TableSlot", Integer.valueOf(8), Integer.valueOf(0), Integer.valueOf(8), v -> this.craft.getValue()));
+    private final Setting<Boolean> sslot = this.register(new Setting<Boolean>("S-Slot", false));
+    private final Timer breakTimer = new Timer();
+    private final Timer placeTimer = new Timer();
+    private final Timer craftTimer = new Timer();
+    private final AtomicDouble yaw = new AtomicDouble(-1.0);
+    private final AtomicDouble pitch = new AtomicDouble(-1.0);
+    private final AtomicBoolean shouldRotate = new AtomicBoolean(false);
+    private EntityPlayer target = null;
+    private boolean sendRotationPacket = false;
+    private boolean one;
+    private boolean two;
+    private boolean three;
+    private boolean four;
+    private boolean five;
+    private boolean six;
+    private boolean seven;
+    private boolean eight;
+    private boolean nine;
+    private boolean ten;
+    private BlockPos maxPos = null;
+    private boolean shouldCraft;
+    private int craftStage = 0;
+    private final int lastCraftStage = -1;
+    private int lastHotbarSlot = -1;
+    private int bedSlot = -1;
+    private BlockPos finalPos;
+    private EnumFacing finalFacing;
 
-    public AutoTrap() {
-        super("AutoTrap", "Traps other players", Module.Category.COMBAT, true, false, false);
+    public BedBomb() {
+        super("BedBomb", "AutoPlace and Break for beds", Module.Category.COMBAT, true, false, false);
     }
 
     @Override
     public void onEnable() {
-        if (AutoTrap.fullNullCheck()) {
-            this.disable();
-            return;
+    }
+
+    @Override
+    public void onDisable() {
+        if (this.sslot.getValue().booleanValue()) {
+            BedBomb.mc.player.connection.sendPacket(new CPacketHeldItemChange(BedBomb.mc.player.inventory.currentItem));
         }
-        this.toAir.clear();
-        this.startPos = EntityUtil.getRoundedBlockPos(AutoTrap.mc.player);
-        this.lastHotbarSlot = AutoTrap.mc.player.inventory.currentItem;
-        this.retries.clear();
     }
 
-    @Override
-    public void onLogout() {
-        this.disable();
-    }
-
-    @Override
-    public void onTick() {
-        if (this.eventMode.getValue() == 3) {
-            this.smartRotate = false;
-            this.doTrap();
+    @SubscribeEvent
+    public void onPacket(PacketEvent.Send event) {
+        if (this.shouldRotate.get() && event.getPacket() instanceof CPacketPlayer) {
+            CPacketPlayer packet = event.getPacket();
+            packet.yaw = (float) this.yaw.get();
+            packet.pitch = (float) this.pitch.get();
+            this.shouldRotate.set(false);
         }
     }
 
     @SubscribeEvent
     public void onUpdateWalkingPlayer(UpdateWalkingPlayerEvent event) {
-        if (event.getStage() == 0 && this.eventMode.getValue() == 2) {
-            this.smartRotate = this.rotate.getValue() != false && this.blocksPerPlace.getValue() == 1;
-            this.doTrap();
+        if (BedBomb.fullNullCheck() || BedBomb.mc.player.dimension != -1 && BedBomb.mc.player.dimension != 1) {
+            return;
+        }
+        if (event.getStage() == 0) {
+            this.doBedBomb();
+            if (this.shouldCraft && BedBomb.mc.currentScreen instanceof GuiCrafting) {
+                int woolSlot = InventoryUtil.findInventoryWool(false);
+                int woodSlot = InventoryUtil.findInventoryBlock(BlockPlanks.class, true);
+                if (woolSlot == -1 || woodSlot == -1) {
+                    mc.displayGuiScreen(null);
+                    BedBomb.mc.currentScreen = null;
+                    this.shouldCraft = false;
+                    return;
+                }
+                if (this.craftStage > 1 && !this.one) {
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, woolSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, 1, 1, ClickType.PICKUP, BedBomb.mc.player);
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, woolSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
+                    this.one = true;
+                } else if (this.craftStage > 1 + this.craftDelay.getValue() && !this.two) {
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, woolSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, 2, 1, ClickType.PICKUP, BedBomb.mc.player);
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, woolSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
+                    this.two = true;
+                } else if (this.craftStage > 1 + this.craftDelay.getValue() * 2 && !this.three) {
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, woolSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, 3, 1, ClickType.PICKUP, BedBomb.mc.player);
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, woolSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
+                    this.three = true;
+                } else if (this.craftStage > 1 + this.craftDelay.getValue() * 3 && !this.four) {
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, woodSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, 4, 1, ClickType.PICKUP, BedBomb.mc.player);
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, woodSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
+                    this.four = true;
+                } else if (this.craftStage > 1 + this.craftDelay.getValue() * 4 && !this.five) {
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, woodSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, 5, 1, ClickType.PICKUP, BedBomb.mc.player);
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, woodSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
+                    this.five = true;
+                } else if (this.craftStage > 1 + this.craftDelay.getValue() * 5 && !this.six) {
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, woodSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, 6, 1, ClickType.PICKUP, BedBomb.mc.player);
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, woodSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
+                    this.recheckBedSlots(woolSlot, woodSlot);
+                    BedBomb.mc.playerController.windowClick(((GuiContainer) BedBomb.mc.currentScreen).inventorySlots.windowId, 0, 0, ClickType.QUICK_MOVE, BedBomb.mc.player);
+                    this.six = true;
+                    this.one = false;
+                    this.two = false;
+                    this.three = false;
+                    this.four = false;
+                    this.five = false;
+                    this.six = false;
+                    this.craftStage = -2;
+                    this.shouldCraft = false;
+                }
+                ++this.craftStage;
+            }
+        } else if (event.getStage() == 1 && this.finalPos != null) {
+            Vec3d hitVec = new Vec3d(this.finalPos.down()).add(0.5, 0.5, 0.5).add(new Vec3d(this.finalFacing.getOpposite().getDirectionVec()).scale(0.5));
+            BedBomb.mc.player.connection.sendPacket(new CPacketEntityAction(BedBomb.mc.player, CPacketEntityAction.Action.START_SNEAKING));
+            InventoryUtil.switchToHotbarSlot(this.bedSlot, false);
+            BlockUtil.rightClickBlock(this.finalPos.down(), hitVec, this.bedSlot == -2 ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND, EnumFacing.UP, this.packet.getValue());
+            BedBomb.mc.player.connection.sendPacket(new CPacketEntityAction(BedBomb.mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
+            this.placeTimer.reset();
+            this.finalPos = null;
         }
     }
 
-    @Override
-    public void onUpdate() {
-        if (this.eventMode.getValue() == 1) {
-            this.smartRotate = false;
-            this.doTrap();
+    public void recheckBedSlots(int woolSlot, int woodSlot) {
+        int i;
+        for (i = 1; i <= 3; ++i) {
+            if (BedBomb.mc.player.openContainer.getInventory().get(i) != ItemStack.EMPTY) continue;
+            BedBomb.mc.playerController.windowClick(1, woolSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
+            BedBomb.mc.playerController.windowClick(1, i, 1, ClickType.PICKUP, BedBomb.mc.player);
+            BedBomb.mc.playerController.windowClick(1, woolSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
         }
+        for (i = 4; i <= 6; ++i) {
+            if (BedBomb.mc.player.openContainer.getInventory().get(i) != ItemStack.EMPTY) continue;
+            BedBomb.mc.playerController.windowClick(1, woodSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
+            BedBomb.mc.playerController.windowClick(1, i, 1, ClickType.PICKUP, BedBomb.mc.player);
+            BedBomb.mc.playerController.windowClick(1, woodSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
+        }
+    }
+
+    public void incrementCraftStage() {
+        if (this.craftTimer.passedMs(this.craftDelay.getValue().intValue())) {
+            ++this.craftStage;
+            if (this.craftStage > 9) {
+                this.craftStage = 0;
+            }
+            this.craftTimer.reset();
+        }
+    }
+
+    private void doBedBomb() {
+        switch (this.logic.getValue()) {
+            case BREAKPLACE: {
+                this.mapBeds();
+                this.breakBeds();
+                this.placeBeds();
+                break;
+            }
+            case PLACEBREAK: {
+                this.mapBeds();
+                this.placeBeds();
+                this.breakBeds();
+            }
+        }
+    }
+
+    private void breakBeds() {
+        if (this.explode.getValue().booleanValue() && this.breakTimer.passedMs(this.breakDelay.getValue().intValue())) {
+            if (this.breakMode.getValue() == BreakLogic.CALC) {
+                if (this.maxPos != null) {
+                    RayTraceResult result;
+                    Vec3d hitVec = new Vec3d(this.maxPos).add(0.5, 0.5, 0.5);
+                    float[] rotations = RotationUtil.getLegitRotations(hitVec);
+                    this.yaw.set(rotations[0]);
+                    if (this.rotate.getValue().booleanValue()) {
+                        this.shouldRotate.set(true);
+                        this.pitch.set(rotations[1]);
+                    }
+                    EnumFacing facing = (result = BedBomb.mc.world.rayTraceBlocks(new Vec3d(BedBomb.mc.player.posX, BedBomb.mc.player.posY + (double) BedBomb.mc.player.getEyeHeight(), BedBomb.mc.player.posZ), new Vec3d((double) this.maxPos.getX() + 0.5, (double) this.maxPos.getY() - 0.5, (double) this.maxPos.getZ() + 0.5))) == null || result.sideHit == null ? EnumFacing.UP : result.sideHit;
+                    BlockUtil.rightClickBlock(this.maxPos, hitVec, EnumHand.MAIN_HAND, facing, true);
+                    this.breakTimer.reset();
+                }
+            } else {
+                for (TileEntity entityBed : BedBomb.mc.world.loadedTileEntityList) {
+                    RayTraceResult result;
+                    if (!(entityBed instanceof TileEntityBed) || BedBomb.mc.player.getDistanceSq(entityBed.getPos()) > MathUtil.square(this.breakRange.getValue().floatValue()))
+                        continue;
+                    Vec3d hitVec = new Vec3d(entityBed.getPos()).add(0.5, 0.5, 0.5);
+                    float[] rotations = RotationUtil.getLegitRotations(hitVec);
+                    this.yaw.set(rotations[0]);
+                    if (this.rotate.getValue().booleanValue()) {
+                        this.shouldRotate.set(true);
+                        this.pitch.set(rotations[1]);
+                    }
+                    EnumFacing facing = (result = BedBomb.mc.world.rayTraceBlocks(new Vec3d(BedBomb.mc.player.posX, BedBomb.mc.player.posY + (double) BedBomb.mc.player.getEyeHeight(), BedBomb.mc.player.posZ), new Vec3d((double) entityBed.getPos().getX() + 0.5, (double) entityBed.getPos().getY() - 0.5, (double) entityBed.getPos().getZ() + 0.5))) == null || result.sideHit == null ? EnumFacing.UP : result.sideHit;
+                    BlockUtil.rightClickBlock(entityBed.getPos(), hitVec, EnumHand.MAIN_HAND, facing, true);
+                    this.breakTimer.reset();
+                }
+            }
+        }
+    }
+
+    private void mapBeds() {
+        this.maxPos = null;
+        float maxDamage = 0.5f;
+        if (this.removeTiles.getValue().booleanValue()) {
+            ArrayList<BedData> removedBlocks = new ArrayList<BedData>();
+            for (TileEntity tile : BedBomb.mc.world.loadedTileEntityList) {
+                if (!(tile instanceof TileEntityBed)) continue;
+                TileEntityBed bed = (TileEntityBed) tile;
+                BedData data = new BedData(tile.getPos(), BedBomb.mc.world.getBlockState(tile.getPos()), bed, bed.isHeadPiece());
+                removedBlocks.add(data);
+            }
+            for (BedData data : removedBlocks) {
+                BedBomb.mc.world.setBlockToAir(data.getPos());
+            }
+            for (BedData data : removedBlocks) {
+                float selfDamage;
+                BlockPos pos;
+                if (!data.isHeadPiece() || !(BedBomb.mc.player.getDistanceSq(pos = data.getPos()) <= MathUtil.square(this.breakRange.getValue().floatValue())) || !((double) (selfDamage = DamageUtil.calculateDamage(pos, BedBomb.mc.player)) + 1.0 < (double) EntityUtil.getHealth(BedBomb.mc.player)) && DamageUtil.canTakeDamage(this.suicide.getValue()))
+                    continue;
+                for (EntityPlayer player : BedBomb.mc.world.playerEntities) {
+                    float damage;
+                    if (!(player.getDistanceSq(pos) < MathUtil.square(this.range.getValue().floatValue())) || !EntityUtil.isValid(player, this.range.getValue().floatValue() + this.breakRange.getValue().floatValue()) || !((damage = DamageUtil.calculateDamage(pos, player)) > selfDamage || damage > this.minDamage.getValue().floatValue() && !DamageUtil.canTakeDamage(this.suicide.getValue())) && !(damage > EntityUtil.getHealth(player)) || !(damage > maxDamage))
+                        continue;
+                    maxDamage = damage;
+                    this.maxPos = pos;
+                }
+            }
+            for (BedData data : removedBlocks) {
+                BedBomb.mc.world.setBlockState(data.getPos(), data.getState());
+            }
+        } else {
+            for (TileEntity tile : BedBomb.mc.world.loadedTileEntityList) {
+                float selfDamage;
+                BlockPos pos;
+                TileEntityBed bed;
+                if (!(tile instanceof TileEntityBed) || !(bed = (TileEntityBed) tile).isHeadPiece() || !(BedBomb.mc.player.getDistanceSq(pos = bed.getPos()) <= MathUtil.square(this.breakRange.getValue().floatValue())) || !((double) (selfDamage = DamageUtil.calculateDamage(pos, BedBomb.mc.player)) + 1.0 < (double) EntityUtil.getHealth(BedBomb.mc.player)) && DamageUtil.canTakeDamage(this.suicide.getValue()))
+                    continue;
+                for (EntityPlayer player : BedBomb.mc.world.playerEntities) {
+                    float damage;
+                    if (!(player.getDistanceSq(pos) < MathUtil.square(this.range.getValue().floatValue())) || !EntityUtil.isValid(player, this.range.getValue().floatValue() + this.breakRange.getValue().floatValue()) || !((damage = DamageUtil.calculateDamage(pos, player)) > selfDamage || damage > this.minDamage.getValue().floatValue() && !DamageUtil.canTakeDamage(this.suicide.getValue())) && !(damage > EntityUtil.getHealth(player)) || !(damage > maxDamage))
+                        continue;
+                    maxDamage = damage;
+                    this.maxPos = pos;
+                }
+            }
+        }
+    }
+
+    private void placeBeds() {
+        if (this.place.getValue().booleanValue() && this.placeTimer.passedMs(this.placeDelay.getValue().intValue()) && this.maxPos == null) {
+            this.bedSlot = this.findBedSlot();
+            if (this.bedSlot == -1) {
+                if (BedBomb.mc.player.getHeldItemOffhand().getItem() == Items.BED) {
+                    this.bedSlot = -2;
+                } else {
+                    if (this.craft.getValue().booleanValue() && !this.shouldCraft && EntityUtil.getClosestEnemy(this.placeRange.getValue().floatValue()) != null) {
+                        this.doBedCraft();
+                    }
+                    return;
+                }
+            }
+            this.lastHotbarSlot = BedBomb.mc.player.inventory.currentItem;
+            this.target = EntityUtil.getClosestEnemy(this.placeRange.getValue().floatValue());
+            if (this.target != null) {
+                BlockPos targetPos = new BlockPos(this.target.getPositionVector());
+                this.placeBed(targetPos, true);
+                if (this.craft.getValue().booleanValue()) {
+                    this.doBedCraft();
+                }
+            }
+        }
+    }
+
+    private void placeBed(BlockPos pos, boolean firstCheck) {
+        if (BedBomb.mc.world.getBlockState(pos).getBlock() == Blocks.BED) {
+            return;
+        }
+        float damage = DamageUtil.calculateDamage(pos, BedBomb.mc.player);
+        if ((double) damage > (double) EntityUtil.getHealth(BedBomb.mc.player) + 0.5) {
+            if (firstCheck && this.oneDot15.getValue().booleanValue()) {
+                this.placeBed(pos.up(), false);
+            }
+            return;
+        }
+        if (!BedBomb.mc.world.getBlockState(pos).getMaterial().isReplaceable()) {
+            if (firstCheck && this.oneDot15.getValue().booleanValue()) {
+                this.placeBed(pos.up(), false);
+            }
+            return;
+        }
+        ArrayList<BlockPos> positions = new ArrayList<BlockPos>();
+        HashMap<BlockPos, EnumFacing> facings = new HashMap<BlockPos, EnumFacing>();
+        for (EnumFacing facing : EnumFacing.values()) {
+            BlockPos position;
+            if (facing == EnumFacing.DOWN || facing == EnumFacing.UP || !(BedBomb.mc.player.getDistanceSq(position = pos.offset(facing)) <= MathUtil.square(this.placeRange.getValue().floatValue())) || !BedBomb.mc.world.getBlockState(position).getMaterial().isReplaceable() || BedBomb.mc.world.getBlockState(position.down()).getMaterial().isReplaceable())
+                continue;
+            positions.add(position);
+            facings.put(position, facing.getOpposite());
+        }
+        if (positions.isEmpty()) {
+            if (firstCheck && this.oneDot15.getValue().booleanValue()) {
+                this.placeBed(pos.up(), false);
+            }
+            return;
+        }
+        positions.sort(Comparator.comparingDouble(pos2 -> BedBomb.mc.player.getDistanceSq(pos2)));
+        this.finalPos = positions.get(0);
+        this.finalFacing = facings.get(this.finalPos);
+        float[] rotation = RotationUtil.simpleFacing(this.finalFacing);
+        if (!this.sendRotationPacket && this.extraPacket.getValue().booleanValue()) {
+            RotationUtil.faceYawAndPitch(rotation[0], rotation[1]);
+            this.sendRotationPacket = true;
+        }
+        this.yaw.set(rotation[0]);
+        this.pitch.set(rotation[1]);
+        this.shouldRotate.set(true);
+        Bucket.rotationManager.setPlayerRotations(rotation[0], rotation[1]);
     }
 
     @Override
     public String getDisplayInfo() {
-        if (this.info.getValue().booleanValue() && this.target != null) {
+        if (this.target != null) {
             return this.target.getName();
         }
         return null;
     }
 
-    @Override
-    public void onDisable() {
-        if (AutoTrap.fullNullCheck()) {
+    public void doBedCraft() {
+        BlockPos target;
+        List targets;
+        int woolSlot = InventoryUtil.findInventoryWool(false);
+        int woodSlot = InventoryUtil.findInventoryBlock(BlockPlanks.class, true);
+        if (woolSlot == -1 || woodSlot == -1) {
+            if (BedBomb.mc.currentScreen instanceof GuiCrafting) {
+                mc.displayGuiScreen(null);
+                BedBomb.mc.currentScreen = null;
+            }
             return;
         }
-        isPlacing = false;
-        this.isSneaking = EntityUtil.stopSneaking(this.isSneaking);
-        this.switchItem(true);
+        if (this.placeCraftingTable.getValue().booleanValue() && BlockUtil.getBlockSphere(this.tableRange.getValue().floatValue() - 1.0f, BlockWorkbench.class).size() == 0 && !(targets = BlockUtil.getSphere(EntityUtil.getPlayerPos(BedBomb.mc.player), this.tableRange.getValue().floatValue(), this.tableRange.getValue().intValue(), false, true, 0).stream().filter(pos -> BlockUtil.isPositionPlaceable(pos, false) == 3).sorted(Comparator.comparingInt(pos -> -this.safety(pos))).collect(Collectors.toList())).isEmpty()) {
+            target = (BlockPos) targets.get(0);
+            int tableSlot = InventoryUtil.findHotbarBlock(BlockWorkbench.class);
+            if (tableSlot != -1) {
+                BedBomb.mc.player.inventory.currentItem = tableSlot;
+                BlockUtil.placeBlock(target, EnumHand.MAIN_HAND, this.rotate.getValue(), true, false);
+            } else {
+                if (this.craftTable.getValue().booleanValue()) {
+                    this.craftTable();
+                }
+                if ((tableSlot = InventoryUtil.findHotbarBlock(BlockWorkbench.class)) != -1) {
+                    BedBomb.mc.player.inventory.currentItem = tableSlot;
+                    BlockUtil.placeBlock(target, EnumHand.MAIN_HAND, this.rotate.getValue(), true, false);
+                }
+            }
+        }
+        if (this.openCraftingTable.getValue().booleanValue()) {
+            List<BlockPos> tables = BlockUtil.getBlockSphere(this.tableRange.getValue().floatValue(), BlockWorkbench.class);
+            tables.sort(Comparator.comparingDouble(pos -> BedBomb.mc.player.getDistanceSq(pos)));
+            if (!tables.isEmpty() && !(BedBomb.mc.currentScreen instanceof GuiCrafting)) {
+                RayTraceResult result;
+                target = tables.get(0);
+                BedBomb.mc.player.connection.sendPacket(new CPacketEntityAction(BedBomb.mc.player, CPacketEntityAction.Action.STOP_SNEAKING));
+                if (BedBomb.mc.player.getDistanceSq(target) > MathUtil.square(this.breakRange.getValue().floatValue())) {
+                    return;
+                }
+                Vec3d hitVec = new Vec3d(target);
+                float[] rotations = RotationUtil.getLegitRotations(hitVec);
+                this.yaw.set(rotations[0]);
+                if (this.rotate.getValue().booleanValue()) {
+                    this.shouldRotate.set(true);
+                    this.pitch.set(rotations[1]);
+                }
+                EnumFacing facing = (result = BedBomb.mc.world.rayTraceBlocks(new Vec3d(BedBomb.mc.player.posX, BedBomb.mc.player.posY + (double) BedBomb.mc.player.getEyeHeight(), BedBomb.mc.player.posZ), new Vec3d((double) target.getX() + 0.5, (double) target.getY() - 0.5, (double) target.getZ() + 0.5))) == null || result.sideHit == null ? EnumFacing.UP : result.sideHit;
+                BlockUtil.rightClickBlock(target, hitVec, EnumHand.MAIN_HAND, facing, true);
+                this.breakTimer.reset();
+                if (BedBomb.mc.player.isSneaking()) {
+                    BedBomb.mc.player.connection.sendPacket(new CPacketEntityAction(BedBomb.mc.player, CPacketEntityAction.Action.START_SNEAKING));
+                }
+            }
+            this.shouldCraft = BedBomb.mc.currentScreen instanceof GuiCrafting;
+            this.craftStage = 0;
+            this.craftTimer.reset();
+        }
+    }
+
+    public void craftTable() {
+        int woodSlot = InventoryUtil.findInventoryBlock(BlockPlanks.class, true);
+        if (woodSlot != -1) {
+            BedBomb.mc.playerController.windowClick(0, woodSlot, 0, ClickType.PICKUP, BedBomb.mc.player);
+            BedBomb.mc.playerController.windowClick(0, 1, 1, ClickType.PICKUP, BedBomb.mc.player);
+            BedBomb.mc.playerController.windowClick(0, 2, 1, ClickType.PICKUP, BedBomb.mc.player);
+            BedBomb.mc.playerController.windowClick(0, 3, 1, ClickType.PICKUP, BedBomb.mc.player);
+            BedBomb.mc.playerController.windowClick(0, 4, 1, ClickType.PICKUP, BedBomb.mc.player);
+            BedBomb.mc.playerController.windowClick(0, 0, 0, ClickType.QUICK_MOVE, BedBomb.mc.player);
+            int table = InventoryUtil.findInventoryBlock(BlockWorkbench.class, true);
+            if (table != -1) {
+                BedBomb.mc.playerController.windowClick(0, table, 0, ClickType.PICKUP, BedBomb.mc.player);
+                BedBomb.mc.playerController.windowClick(0, this.tableSlot.getValue().intValue(), 0, ClickType.PICKUP, BedBomb.mc.player);
+                BedBomb.mc.playerController.windowClick(0, table, 0, ClickType.PICKUP, BedBomb.mc.player);
+            }
+        }
     }
 
     @Override
-    public void onRender3D(Render3DEvent event) {
-        if (this.render.getValue().booleanValue() && this.currentPlaceList != null) {
-            for (Vec3d vec : this.currentPlaceList) {
-                BlockPos pos = new BlockPos(vec);
-                if (!(AutoTrap.mc.world.getBlockState(pos).getBlock() instanceof BlockAir)) continue;
-                RenderUtil.drawBoxESP(pos, this.colorSync.getValue() != false ? Colors.INSTANCE.getCurrentColor() : new Color(this.red.getValue(), this.green.getValue(), this.blue.getValue(), this.alpha.getValue()), this.customOutline.getValue(), new Color(this.cRed.getValue(), this.cGreen.getValue(), this.cBlue.getValue(), this.cAlpha.getValue()), this.lineWidth.getValue().floatValue(), this.outline.getValue(), this.box.getValue(), this.boxAlpha.getValue(), false);
-            }
-        }
+    public void onToggle() {
+        this.lastHotbarSlot = -1;
+        this.bedSlot = -1;
+        this.sendRotationPacket = false;
+        this.target = null;
+        this.yaw.set(-1.0);
+        this.pitch.set(-1.0);
+        this.shouldRotate.set(false);
+        this.shouldCraft = false;
     }
 
-    private void doTrap() {
-        switch (this.pattern.getValue()) {
-            case STATIC: {
-                this.doStaticTrap();
-                break;
-            }
-            case SMART:
-            case OPEN: {
-                this.doSmartTrap();
-                break;
-            }
+    private int findBedSlot() {
+        for (int i = 0; i < 9; ++i) {
+            ItemStack stack = BedBomb.mc.player.inventory.getStackInSlot(i);
+            if (stack == ItemStack.EMPTY || stack.getItem() != Items.BED) continue;
+            return i;
         }
-        if (this.packet.getValue().booleanValue() && this.airPacket.getValue().booleanValue()) {
-            for (Map.Entry<BlockPos, IBlockState> entry : this.toAir.entrySet()) {
-                AutoTrap.mc.world.setBlockState(entry.getKey(), entry.getValue());
-            }
-            this.toAir.clear();
-        }
-        if (this.didPlace) {
-            this.timer.reset();
-        }
+        return -1;
     }
 
-    private void doSmartTrap() {
-        List<Vec3d> placeTargets = EntityUtil.getUntrappedBlocksExtended(this.extend.getValue(), this.target, this.antiScaffold.getValue(), this.antiStep.getValue(), this.legs.getValue(), this.platform.getValue(), this.antiDrop.getValue(), this.raytrace.getValue(), this.noScaffoldExtend.getValue(), this.face.getValue());
-        this.placeList(placeTargets);
-        this.currentPlaceList = placeTargets;
+    private int safety(BlockPos pos) {
+        int safety = 0;
+        for (EnumFacing facing : EnumFacing.values()) {
+            if (BedBomb.mc.world.getBlockState(pos.offset(facing)).getMaterial().isReplaceable()) continue;
+            ++safety;
+        }
+        return safety;
     }
 
-    private void doStaticTrap() {
-        List<Vec3d> placeTargets = EntityUtil.targets(this.target.getPositionVector(), this.antiScaffold.getValue(), this.antiStep.getValue(), this.legs.getValue(), this.platform.getValue(), this.antiDrop.getValue(), this.raytrace.getValue(), this.face.getValue());
-        this.placeList(placeTargets);
-        this.currentPlaceList = placeTargets;
-    }
-
-    private void placeList(List<Vec3d> list) {
-        list.sort((vec3d, vec3d2) -> Double.compare(AutoTrap.mc.player.getDistanceSq(vec3d2.x, vec3d2.y, vec3d2.z), AutoTrap.mc.player.getDistanceSq(vec3d.x, vec3d.y, vec3d.z)));
-        list.sort(Comparator.comparingDouble(vec3d -> vec3d.y));
-        for (Vec3d vec3d3 : list) {
-            BlockPos position = new BlockPos(vec3d3);
-            int placeability = BlockUtil.isPositionPlaceable(position, this.raytrace.getValue());
-            if (this.entityCheck.getValue().booleanValue() && placeability == 1 && (this.switchMode.getValue() == InventoryUtil.Switch.SILENT || BlockTweaks.getINSTANCE().isOn() && BlockTweaks.getINSTANCE().noBlock.getValue().booleanValue()) && (this.retries.get(position) == null || this.retries.get(position) < this.retryer.getValue())) {
-                this.placeBlock(position);
-                this.retries.put(position, this.retries.get(position) == null ? 1 : this.retries.get(position) + 1);
-                this.retryTimer.reset();
-                continue;
-            }
-            if (placeability != 3 || this.antiSelf.getValue().booleanValue() && MathUtil.areVec3dsAligned(AutoTrap.mc.player.getPositionVector(), vec3d3))
-                continue;
-            this.placeBlock(position);
-        }
-    }
-
-    private boolean check() {
-        isPlacing = false;
-        this.didPlace = false;
-        this.placements = 0;
-        int obbySlot = -1;
-        if (this.endPortals.getValue().booleanValue()) {
-            obbySlot = InventoryUtil.findHotbarBlock(BlockEndPortalFrame.class);
-            if (obbySlot == -1) {
-                obbySlot = InventoryUtil.findHotbarBlock(BlockObsidian.class);
-            }
-        } else {
-            obbySlot = InventoryUtil.findHotbarBlock(BlockObsidian.class);
-        }
-        if (this.isOff()) {
-            return true;
-        }
-        if (this.disable.getValue().booleanValue() && this.startPos != null && !this.startPos.equals(EntityUtil.getRoundedBlockPos(AutoTrap.mc.player))) {
-            this.disable();
-            return true;
-        }
-        if (this.retryTimer.passedMs(2000L)) {
-            this.retries.clear();
-            this.retryTimer.reset();
-        }
-        if (obbySlot == -1) {
-            if (this.switchMode.getValue() != InventoryUtil.Switch.NONE) {
-                if (this.info.getValue().booleanValue()) {
-                    Command.sendMessage("<" + this.getDisplayName() + "> " + "\u00a7c" + "You are out of Obsidian.");
-                }
-                this.disable();
-            }
-            return true;
-        }
-        if (AutoTrap.mc.player.inventory.currentItem != this.lastHotbarSlot && AutoTrap.mc.player.inventory.currentItem != obbySlot) {
-            this.lastHotbarSlot = AutoTrap.mc.player.inventory.currentItem;
-        }
-        this.switchItem(true);
-        this.isSneaking = EntityUtil.stopSneaking(this.isSneaking);
-        this.target = this.getTarget(this.targetRange.getValue(), this.targetMode.getValue() == TargetMode.UNTRAPPED);
-        return this.target == null || Bucket.moduleManager.isModuleEnabled("Freecam") && this.freecam.getValue() == false || !this.timer.passedMs(this.delay.getValue().intValue()) || this.switchMode.getValue() == InventoryUtil.Switch.NONE && AutoTrap.mc.player.inventory.currentItem != InventoryUtil.findHotbarBlock(BlockObsidian.class);
-    }
-
-    private EntityPlayer getTarget(double range, boolean trapped) {
-        EntityPlayer target = null;
-        double distance = Math.pow(range, 2.0) + 1.0;
-        for (EntityPlayer player : AutoTrap.mc.world.playerEntities) {
-            if (EntityUtil.isntValid(player, range) || this.pattern.getValue() == Pattern.STATIC && trapped && EntityUtil.isTrapped(player, this.antiScaffold.getValue(), this.antiStep.getValue(), this.legs.getValue(), this.platform.getValue(), this.antiDrop.getValue(), this.face.getValue()) || this.pattern.getValue() != Pattern.STATIC && trapped && EntityUtil.isTrappedExtended(this.extend.getValue(), player, this.antiScaffold.getValue(), this.antiStep.getValue(), this.legs.getValue(), this.platform.getValue(), this.antiDrop.getValue(), this.raytrace.getValue(), this.noScaffoldExtend.getValue(), this.face.getValue()) || EntityUtil.getRoundedBlockPos(AutoTrap.mc.player).equals(EntityUtil.getRoundedBlockPos(player)) && this.antiSelf.getValue().booleanValue() || Bucket.speedManager.getPlayerSpeed(player) > this.speed.getValue())
-                continue;
-            if (target == null) {
-                target = player;
-                distance = AutoTrap.mc.player.getDistanceSq(player);
-                continue;
-            }
-            if (!(AutoTrap.mc.player.getDistanceSq(player) < distance)) continue;
-            target = player;
-            distance = AutoTrap.mc.player.getDistanceSq(player);
-        }
-        return target;
-    }
-
-    private void placeBlock(BlockPos pos) {
-        if (this.placements < this.blocksPerPlace.getValue() && AutoTrap.mc.player.getDistanceSq(pos) <= MathUtil.square(this.range.getValue()) && this.switchItem(false)) {
-            isPlacing = true;
-            if (this.airPacket.getValue().booleanValue() && this.packet.getValue().booleanValue()) {
-                this.toAir.put(pos, AutoTrap.mc.world.getBlockState(pos));
-            }
-            this.isSneaking = this.smartRotate ? BlockUtil.placeBlockSmartRotate(pos, EnumHand.MAIN_HAND, true, this.airPacket.getValue() == false && this.packet.getValue() != false, this.isSneaking) : BlockUtil.placeBlock(pos, EnumHand.MAIN_HAND, this.rotate.getValue(), this.airPacket.getValue() == false && this.packet.getValue() != false, this.isSneaking);
-            this.didPlace = true;
-            ++this.placements;
-        }
-    }
-
-    private boolean switchItem(boolean back) {
-        boolean[] value = InventoryUtil.switchItem(back, this.lastHotbarSlot, this.switchedItem, this.switchMode.getValue(), this.endPortals.getValue() != false && InventoryUtil.findHotbarBlock(BlockEndPortalFrame.class) != -1 ? BlockEndPortalFrame.class : BlockObsidian.class);
-        this.switchedItem = value[0];
-        return value[1];
-    }
-
-    public enum TargetMode {
-        CLOSEST,
-        UNTRAPPED
+    public enum BreakLogic {
+        ALL,
+        CALC
 
     }
 
-    public enum Pattern {
-        STATIC,
-        SMART,
-        OPEN
+    public enum Logic {
+        BREAKPLACE,
+        PLACEBREAK
 
+    }
+
+    public static class BedData {
+        private final BlockPos pos;
+        private final IBlockState state;
+        private final boolean isHeadPiece;
+        private final TileEntityBed entity;
+
+        public BedData(BlockPos pos, IBlockState state, TileEntityBed bed, boolean isHeadPiece) {
+            this.pos = pos;
+            this.state = state;
+            this.entity = bed;
+            this.isHeadPiece = isHeadPiece;
+        }
+
+        public BlockPos getPos() {
+            return this.pos;
+        }
+
+        public IBlockState getState() {
+            return this.state;
+        }
+
+        public boolean isHeadPiece() {
+            return this.isHeadPiece;
+        }
+
+        public TileEntityBed getEntity() {
+            return this.entity;
+        }
     }
 }
 
